@@ -56,25 +56,24 @@ class Queryapi(Walapi):
         
     def build_per_title_ranking(self, title, search_depth, **kwargs):
         ranking = {}
-        # num_item_per_search = 10
-        # start = 1
 
-        self._delay()
-        try:
-            result = self.product_search(title)
-            if "items" in result:
-                for i, item in enumerate(result["items"]):
-                    ranking[item["itemId"]] = 20-i
-        except WalapiException as e:
-            pass
-        self._delay()
-        try:
-            result = self.product_search(query=title, start = 10)
-            if "items" in result:
-                for i, item in enumerate(result["items"]):
-                    ranking[item["itemId"]] = 10-i
-        except WalapiException as e:
-            pass
+        num_item_per_search = 10
+        start_index = 0
+        paging = int(search_depth/num_item_per_search)
+
+        while start_index < paging:
+            try:
+                start_pointer = start_index * num_item_per_search + 1
+                max_rank_on_page = search_depth + 1 - start_pointer
+                self._delay()
+                result = self.product_search(query=title, start=start_pointer)
+                if "items" in result:
+                    for i, item in enumerate(result["items"]):
+                        ranking[item["itemId"]] = max_rank_on_page - i
+            except WalapiException as e:
+                pass
+            finally:
+                start_index += 1
         return ranking
 
     def build_ranking(self, titles, search_depth, **kwargs):
@@ -82,7 +81,6 @@ class Queryapi(Walapi):
         for title in titles[:search_depth]:
             ranking[title] = self.build_per_title_ranking(title, search_depth)
         return ranking
-
 
     def consolidate_ranking(self, ranking, search_depth, **kwargs):
         flat_ranking = {}
