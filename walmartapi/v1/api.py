@@ -90,9 +90,16 @@ class Queryapi(Walapi):
                     flat_ranking[key] = value
                 else:
                     flat_ranking[key] += value
+
         final_ranking = {}
-        for key, value in flat_ranking.items():
-            final_ranking[key] = search_depth - float(value)/search_depth
+        rank = 1
+        for product_id, value in sorted(flat_ranking.items(), key=lambda item: item[1], reverse=True):
+            score = search_depth - float(value)/search_depth
+            final_ranking[rank] = {
+                                    "productId": product_id,
+                                    "score": score 
+                                }
+            rank += 1    
         return final_ranking
 
     def get_ranking(self, product_id, **kwargs):
