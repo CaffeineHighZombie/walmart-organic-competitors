@@ -1,5 +1,6 @@
 import requests
 import json
+from time import sleep
 
 API_URL = "http://api.walmartlabs.com/v1/"
 
@@ -43,6 +44,64 @@ class Walapi:
 
 class Queryapi(Walapi):
 
-    def __init__(self, rate_limit_delay=0.220):
-        pass
+    def __init__(self, api_key, rate_limit_delay=0.220):
+        """
+        :param api_key:
+            Walmart Open API key
+        :param rate_limit_delay:
+            Delay to respect Walmart Open API rate limit of 5 call per second
+        """
+        super().__init__(api_key)
+        self.rate_limit_delay = rate_limit_delay
+        
+    def build_per_title_ranking(self, title):
+        ranking = {}
+        self._delay()
+        result = self.product_search(title)
+        try:
+            for i, item in enumerate(result["items"]):
+                ranking[item["itemId"]] = 20-i
+        except Exception as e:
+            # print(e)
+            pass
+        self._delay()
+        result = self.product_search(query=title, start = 10)
+        try:
+            for i, item in enumerate(result["items"]):
+                ranking[item["itemId"]] = 10-i
+        except Exception as e:
+            # print(e)
+            pass
+        return ranking
+
+    def build_ranking(self, titles):
+        ranking = {}
+        for title in titles:
+            ranking[title] = self.build_per_title_ranking(title)
+        return ranking
+
+
+    def consolidate_ranking(self, ranking):
+        flat_ranking = {}
+        for title, title_ranking in ranking.items():
+            for key, value in title_ranking.items():
+                if key not in flat_ranking:
+                    flat_ranking[key] = value
+                else:
+                    flat_ranking[key] += value
+        final_ranking = {}
+        for key, value in flat_ranking.items():
+            final_ranking[key] = 20 - value/20
+        return final_ranking
+
+    def get_ranking(self, product_id):
+        data = self.product_lookup(product_id)
+        product_title = data["name"]
+        titles = product_title.split()
+        ranking = self.build_ranking(titles)
+        final_ranking = self.consolidate_ranking(ranking)
+        return final_ranking
+
+    def _delay(self):
+        sleep(self.rate_limit_delay)
 
