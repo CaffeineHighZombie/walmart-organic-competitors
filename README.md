@@ -1,4 +1,5 @@
 # Walmart Organic Competitors
+Challenge description: [Walmart Organic Competitors Coding Challenge](./Walmart Organic Competitors Coding Challenge.pdf)
 ## Instructions for environment setup 
 ### Creating and setting up python virtual environment with required python modules
 ```bash
