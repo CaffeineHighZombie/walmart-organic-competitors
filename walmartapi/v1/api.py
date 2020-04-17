@@ -96,7 +96,7 @@ class Queryapi(Walapi):
         return final_ranking
 
     def get_ranking(self, product_id, **kwargs):
-        keyword_search_depth = 20  ## As per challenge specification (It should be 10, for now 20 to test out paging functionality)
+        keyword_search_depth = 10  ## As per challenge specification
         if "keyword_search_depth" in kwargs:
             keyword_search_depth = kwargs["keyword_search_depth"]
         data = self.product_lookup(product_id)
