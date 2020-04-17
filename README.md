@@ -10,7 +10,7 @@ $ pip install -r requirements.txt
 ## Instructions for running the tool
 Start with Flask server
 ```bash
-$ python api.py
+$ python main.py
 ```
 ## productId Lookup API
 ProductId Lookup API looks up specific product on Walmart and returns the ranking of competitors.
