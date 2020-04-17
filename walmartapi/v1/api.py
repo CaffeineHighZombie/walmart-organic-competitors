@@ -54,7 +54,7 @@ class Queryapi(Walapi):
         super().__init__(api_key)
         self.rate_limit_delay = rate_limit_delay
         
-    def build_per_title_ranking(self, title, search_depth):
+    def build_per_title_ranking(self, title, search_depth, **kwargs):
         ranking = {}
         # num_item_per_search = 10
         # start = 1
@@ -77,14 +77,14 @@ class Queryapi(Walapi):
             pass
         return ranking
 
-    def build_ranking(self, titles, search_depth=20):
+    def build_ranking(self, titles, search_depth, **kwargs):
         ranking = {}
-        for title in titles:
+        for title in titles[:search_depth]:
             ranking[title] = self.build_per_title_ranking(title, search_depth)
         return ranking
 
 
-    def consolidate_ranking(self, ranking):
+    def consolidate_ranking(self, ranking, search_depth, **kwargs):
         flat_ranking = {}
         for title, title_ranking in ranking.items():
             for key, value in title_ranking.items():
@@ -94,15 +94,18 @@ class Queryapi(Walapi):
                     flat_ranking[key] += value
         final_ranking = {}
         for key, value in flat_ranking.items():
-            final_ranking[key] = 20 - value/20
+            final_ranking[key] = search_depth - float(value)/search_depth
         return final_ranking
 
-    def get_ranking(self, product_id):
+    def get_ranking(self, product_id, **kwargs):
+        keyword_search_depth = 20  ## As per challenge specification (It should be 10, for now 20 to test out paging functionality)
+        if "keyword_search_depth" in kwargs:
+            keyword_search_depth = kwargs["keyword_search_depth"]
         data = self.product_lookup(product_id)
         product_title = data["name"]
         titles = product_title.split()
-        ranking = self.build_ranking(titles)
-        final_ranking = self.consolidate_ranking(ranking)
+        keyword_ranking = self.build_ranking(titles, keyword_search_depth)
+        final_ranking = self.consolidate_ranking(keyword_ranking, keyword_search_depth)
         return final_ranking
 
     def _delay(self):
