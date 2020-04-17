@@ -54,30 +54,33 @@ class Queryapi(Walapi):
         super().__init__(api_key)
         self.rate_limit_delay = rate_limit_delay
         
-    def build_per_title_ranking(self, title):
+    def build_per_title_ranking(self, title, search_depth):
         ranking = {}
+        # num_item_per_search = 10
+        # start = 1
+
         self._delay()
-        result = self.product_search(title)
         try:
-            for i, item in enumerate(result["items"]):
-                ranking[item["itemId"]] = 20-i
-        except Exception as e:
-            # print(e)
+            result = self.product_search(title)
+            if "items" in result:
+                for i, item in enumerate(result["items"]):
+                    ranking[item["itemId"]] = 20-i
+        except WalapiException as e:
             pass
         self._delay()
-        result = self.product_search(query=title, start = 10)
         try:
-            for i, item in enumerate(result["items"]):
-                ranking[item["itemId"]] = 10-i
-        except Exception as e:
-            # print(e)
+            result = self.product_search(query=title, start = 10)
+            if "items" in result:
+                for i, item in enumerate(result["items"]):
+                    ranking[item["itemId"]] = 10-i
+        except WalapiException as e:
             pass
         return ranking
 
-    def build_ranking(self, titles):
+    def build_ranking(self, titles, search_depth=20):
         ranking = {}
         for title in titles:
-            ranking[title] = self.build_per_title_ranking(title)
+            ranking[title] = self.build_per_title_ranking(title, search_depth)
         return ranking
 
 
